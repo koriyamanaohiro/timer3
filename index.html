@@ -7,10 +7,18 @@
 <title>タイマー</title>
 
 <style>
-
 body{
     font-family:sans-serif;
     margin:20px;
+}
+
+h2{
+    margin-bottom:5px;
+}
+
+#dateText{
+    margin-bottom:15px;
+    font-size:16px;
 }
 
 table{
@@ -35,16 +43,28 @@ button{
     font-weight:bold;
 }
 
+@media print{
+    button{
+        display:none;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3){
+        display:none;
+    }
+}
 </style>
 </head>
 
 <body>
 
-<h2>タイマー</h2>
+<h2>計測結果</h2>
+<div id="dateText"></div>
+
+<button onclick="printPDF()">PDF作成</button>
 <button onclick="resetAll()">オールリセット</button>
 
 <table>
-
 <tr>
     <th>番号</th>
     <th>経過時間</th>
@@ -52,13 +72,10 @@ button{
 </tr>
 
 <tbody id="tableBody"></tbody>
-
 </table>
 
 <script>
-
 const tableBody = document.getElementById("tableBody");
-
 const timers = {};
 
 const rows = [
@@ -74,10 +91,22 @@ const rows = [
 
 rows.forEach(name => createRow(name));
 
+function setToday(){
+    const today = new Date();
+
+    const y = today.getFullYear();
+    const m = today.getMonth() + 1;
+    const d = today.getDate();
+
+    document.getElementById("dateText").textContent =
+        `${y}年${m}月${d}日`;
+}
+
+setToday();
+
 function createRow(name){
 
     const tr = document.createElement("tr");
-
     tr.dataset.name = name;
 
     if(name.includes("a")){
@@ -86,19 +115,10 @@ function createRow(name){
 
     tr.innerHTML = `
         <td>${name}</td>
-
-        <td class="elapsed">
-            00:00:00
-        </td>
-
+        <td class="elapsed">00:00:00</td>
         <td>
-            <button onclick="startTimer('${name}')">
-                Start
-            </button>
-
-            <button onclick="endTimer('${name}')">
-                End
-            </button>
+            <button onclick="startTimer('${name}')">Start</button>
+            <button onclick="endTimer('${name}')">End</button>
         </td>
     `;
 
@@ -110,16 +130,13 @@ function formatTime(ms){
     const totalSeconds = Math.floor(ms / 1000);
 
     const hours =
-        String(Math.floor(totalSeconds / 3600))
-        .padStart(2,"0");
+        String(Math.floor(totalSeconds / 3600)).padStart(2,"0");
 
     const minutes =
-        String(Math.floor((totalSeconds % 3600) / 60))
-        .padStart(2,"0");
+        String(Math.floor((totalSeconds % 3600) / 60)).padStart(2,"0");
 
     const seconds =
-        String(totalSeconds % 60)
-        .padStart(2,"0");
+        String(totalSeconds % 60).padStart(2,"0");
 
     return `${hours}:${minutes}:${seconds}`;
 }
@@ -127,9 +144,7 @@ function formatTime(ms){
 function startTimer(name){
 
     const row =
-        document.querySelector(
-            `tr[data-name="${name}"]`
-        );
+        document.querySelector(`tr[data-name="${name}"]`);
 
     if(timers[name]){
         clearInterval(timers[name].interval);
@@ -138,16 +153,11 @@ function startTimer(name){
     const startTime = Date.now();
 
     timers[name] = {
-
         startTime:startTime,
-
         interval:setInterval(()=>{
+            const elapsed = Date.now() - startTime;
 
-            const elapsed =
-                Date.now() - startTime;
-
-            row.querySelector(".elapsed")
-               .textContent =
+            row.querySelector(".elapsed").textContent =
                 formatTime(elapsed);
 
         },1000)
@@ -159,7 +169,6 @@ function endTimer(name){
     if(!timers[name]) return;
 
     clearInterval(timers[name].interval);
-
     delete timers[name];
 }
 
@@ -179,6 +188,9 @@ function resetAll(){
     });
 }
 
+function printPDF(){
+    window.print();
+}
 </script>
 
 </body>
