@@ -54,31 +54,43 @@ button{
     }
 }
 @page{
-    size:B5 portrait;
-    margin:10mm;
+    size:B5 landscape;
+    margin:3mm;
 }
 
 @media print{
 
     body{
-        zoom:0.6;
+        zoom:0.45;
+    }
+
+    h2{
+        font-size:12px;
+        margin:0;
+    }
+
+    #dateText{
+        font-size:8px;
+        margin-bottom:4px;
     }
 
     table{
         width:100%;
+        border-collapse:collapse;
     }
 
     th,td{
-        padding:2px;
-        font-size:10px;
+        padding:1px;
+        font-size:7px;
     }
 
-    h2{
-        font-size:18px;
+    button{
+        display:none;
     }
 
-    #dateText{
-        font-size:12px;
+    th:nth-child(3),
+    td:nth-child(3){
+        display:none;
     }
 }
 </style>
