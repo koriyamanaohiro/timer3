@@ -41,6 +41,7 @@ button{
 <body>
 
 <h2>タイマー</h2>
+<button onclick="resetAll()">オールリセット</button>
 
 <table>
 
@@ -160,6 +161,22 @@ function endTimer(name){
     clearInterval(timers[name].interval);
 
     delete timers[name];
+}
+
+function resetAll(){
+
+    if(!confirm("すべての記録を消しますか？")){
+        return;
+    }
+
+    for(const name in timers){
+        clearInterval(timers[name].interval);
+        delete timers[name];
+    }
+
+    document.querySelectorAll(".elapsed").forEach(cell => {
+        cell.textContent = "00:00:00";
+    });
 }
 
 </script>
