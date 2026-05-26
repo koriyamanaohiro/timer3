@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>タイマー</title>
+
+<style>
+
+body{
+    font-family:sans-serif;
+    margin:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #999;
+    padding:10px;
+    text-align:center;
+    font-size:16px;
+}
+
+button{
+    padding:8px 14px;
+    margin:2px;
+    font-size:14px;
+}
+
+.elapsed{
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>タイマー</h2>
+
+<table>
+
+<tr>
+    <th>番号</th>
+    <th>経過時間</th>
+    <th>操作</th>
+</tr>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+<script>
+
+const tableBody = document.getElementById("tableBody");
+
+const timers = {};
+
+const rows = [
+"1","2",
+"3","3a",
+"4","4a",
+"5","5a",
+"6","6a",
+"7","7a",
+"8","8a",
+"9","10","11","12"
+];
+
+rows.forEach(name => createRow(name));
+
+function createRow(name){
+
+    const tr = document.createElement("tr");
+
+    tr.dataset.name = name;
+
+    if(name.includes("a")){
+        tr.style.backgroundColor = "#f0f8ff";
+    }
+
+    tr.innerHTML = `
+        <td>${name}</td>
+
+        <td class="elapsed">
+            00:00:00
+        </td>
+
+        <td>
+            <button onclick="startTimer('${name}')">
+                Start
+            </button>
+
+            <button onclick="endTimer('${name}')">
+                End
+            </button>
+        </td>
+    `;
+
+    tableBody.appendChild(tr);
+}
+
+function formatTime(ms){
+
+    const totalSeconds = Math.floor(ms / 1000);
+
+    const hours =
+        String(Math.floor(totalSeconds / 3600))
+        .padStart(2,"0");
+
+    const minutes =
+        String(Math.floor((totalSeconds % 3600) / 60))
+        .padStart(2,"0");
+
+    const seconds =
+        String(totalSeconds % 60)
+        .padStart(2,"0");
+
+    return `${hours}:${minutes}:${seconds}`;
+}
+
+function startTimer(name){
+
+    const row =
+        document.querySelector(
+            `tr[data-name="${name}"]`
+        );
+
+    if(timers[name]){
+        clearInterval(timers[name].interval);
+    }
+
+    const startTime = Date.now();
+
+    timers[name] = {
+
+        startTime:startTime,
+
+        interval:setInterval(()=>{
+
+            const elapsed =
+                Date.now() - startTime;
+
+            row.querySelector(".elapsed")
+               .textContent =
+                formatTime(elapsed);
+
+        },1000)
+    };
+}
+
+function endTimer(name){
+
+    if(!timers[name]) return;
+
+    clearInterval(timers[name].interval);
+
+    delete timers[name];
+}
+
+</script>
+
+</body>
+</html>
