@@ -125,7 +125,7 @@ const rows = [
 "5","5a",
 "6","6a",
 "7","7a",
-"8","8a",
+"8",
 "9","10","11","12"
 ];
 
@@ -209,6 +209,12 @@ function endTimer(name){
     if(!timers[name]) return;
 
     clearInterval(timers[name].interval);
+
+    const row =
+        document.querySelector(`tr[data-name="${name}"]`);
+
+    row.style.backgroundColor = "#d9f7d9";
+
     delete timers[name];
 }
 
