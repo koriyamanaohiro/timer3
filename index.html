@@ -53,6 +53,34 @@ button{
         display:none;
     }
 }
+@page{
+    size:B5 portrait;
+    margin:10mm;
+}
+
+@media print{
+
+    body{
+        zoom:0.8;
+    }
+
+    table{
+        width:100%;
+    }
+
+    th,td{
+        padding:4px;
+        font-size:12px;
+    }
+
+    h2{
+        font-size:18px;
+    }
+
+    #dateText{
+        font-size:12px;
+    }
+}
 </style>
 </head>
 
