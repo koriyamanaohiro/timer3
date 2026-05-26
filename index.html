@@ -16,11 +16,6 @@ h2{
     margin-bottom:5px;
 }
 
-#dateText{
-    margin-bottom:15px;
-    font-size:16px;
-}
-
 table{
     width:100%;
     border-collapse:collapse;
@@ -42,66 +37,14 @@ button{
 .elapsed{
     font-weight:bold;
 }
-
-@media print{
-    button{
-        display:none;
-    }
-
-    th:nth-child(3),
-    td:nth-child(3){
-        display:none;
-    }
-}
-@page{
-    size:A4 portrait;
-    margin:5mm;
-}
-
-@media print{
-
-    body{
-        zoom:0.33;
-    }
-
-    h2{
-        font-size:10px;
-        margin:0 0 2px 0;
-    }
-
-    #dateText{
-        font-size:6px;
-        margin-bottom:3px;
-    }
-
-    table{
-        width:60%;
-        border-collapse:collapse;
-    }
-
-    th,td{
-        padding:1px;
-        font-size:5px;
-    }
-
-    button{
-        display:none;
-    }
-
-    th:nth-child(3),
-    td:nth-child(3){
-        display:none;
-    }
-}
 </style>
 </head>
 
 <body>
 
-<h2>計測結果</h2>
-<div id="dateText"></div>
+<h2>タイマー</h2>
 
-<button onclick="printPDF()">PDF作成</button>
+<button onclick="showPDFView()">PDF用表示</button>
 <button onclick="resetAll()">オールリセット</button>
 
 <table>
@@ -130,19 +73,6 @@ const rows = [
 ];
 
 rows.forEach(name => createRow(name));
-
-function setToday(){
-    const today = new Date();
-
-    const y = today.getFullYear();
-    const m = today.getMonth() + 1;
-    const d = today.getDate();
-
-    document.getElementById("dateText").textContent =
-        `${y}年${m}月${d}日`;
-}
-
-setToday();
 
 function createRow(name){
 
@@ -183,12 +113,13 @@ function formatTime(ms){
 
 function startTimer(name){
 
-    const row =
-        document.querySelector(`tr[data-name="${name}"]`);
+    const row = document.querySelector(`tr[data-name="${name}"]`);
 
     if(timers[name]){
         clearInterval(timers[name].interval);
     }
+
+    row.style.backgroundColor = name.includes("a") ? "#f0f8ff" : "";
 
     const startTime = Date.now();
 
@@ -210,9 +141,7 @@ function endTimer(name){
 
     clearInterval(timers[name].interval);
 
-    const row =
-        document.querySelector(`tr[data-name="${name}"]`);
-
+    const row = document.querySelector(`tr[data-name="${name}"]`);
     row.style.backgroundColor = "#d9f7d9";
 
     delete timers[name];
@@ -229,13 +158,121 @@ function resetAll(){
         delete timers[name];
     }
 
-    document.querySelectorAll(".elapsed").forEach(cell => {
-        cell.textContent = "00:00:00";
+    document.querySelectorAll("tr[data-name]").forEach(row => {
+        const name = row.dataset.name;
+
+        row.querySelector(".elapsed").textContent = "00:00:00";
+        row.style.backgroundColor = name.includes("a") ? "#f0f8ff" : "";
     });
 }
 
-function printPDF(){
-    window.print();
+function getTodayText(){
+    const today = new Date();
+    return `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+}
+
+function showPDFView(){
+
+    let tableRows = "";
+
+    rows.forEach(name => {
+        const row = document.querySelector(`tr[data-name="${name}"]`);
+        const time = row.querySelector(".elapsed").textContent;
+
+        tableRows += `
+            <tr>
+                <td>${name}</td>
+                <td>${time}</td>
+            </tr>
+        `;
+    });
+
+    const pdfHTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>計測結果</title>
+
+<style>
+body{
+    font-family:sans-serif;
+    margin:16px;
+}
+
+h1{
+    font-size:22px;
+    margin:0 0 6px 0;
+}
+
+#date{
+    font-size:15px;
+    margin-bottom:12px;
+}
+
+table{
+    width:320px;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #777;
+    padding:5px;
+    text-align:center;
+    font-size:14px;
+}
+
+th{
+    background:#f0f0f0;
+}
+
+button{
+    margin-bottom:12px;
+    padding:8px 14px;
+    font-size:14px;
+}
+
+@media print{
+    button{
+        display:none;
+    }
+
+    body{
+        margin:10mm;
+    }
+
+    table{
+        width:320px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<button onclick="window.print()">PDFにする</button>
+
+<h1>計測結果</h1>
+<div id="date">${getTodayText()}</div>
+
+<table>
+<tr>
+    <th>番号</th>
+    <th>経過時間</th>
+</tr>
+${tableRows}
+</table>
+
+</body>
+</html>
+`;
+
+    const win = window.open("", "_blank");
+    win.document.open();
+    win.document.write(pdfHTML);
+    win.document.close();
 }
 </script>
 
