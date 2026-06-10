@@ -1,185 +1,372 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>10人タイマー</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #111;
+    }
 
-<title>タイマー</title>
+    h1 {
+      font-size: 28px;
+      margin: 0 0 16px;
+      text-align: center;
+    }
 
-<style>
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
 
-body{
-    font-family:sans-serif;
-    margin:20px;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 22px;
+    }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-}
+    th, td {
+      border-bottom: 1px solid #ccc;
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
 
-th,td{
-    border:1px solid #999;
-    padding:10px;
-    text-align:center;
-    font-size:16px;
-}
+    th {
+      background: #fafafa;
+      font-weight: 700;
+    }
 
-button{
-    padding:8px 14px;
-    margin:2px;
-    font-size:14px;
-}
+    td:first-child, th:first-child {
+      width: 70px;
+      text-align: center;
+    }
 
-.elapsed{
-    font-weight:bold;
-}
+    td:nth-child(2), th:nth-child(2),
+    td:nth-child(4), th:nth-child(4) {
+      width: 135px;
+    }
 
-</style>
+    td:nth-child(3), th:nth-child(3),
+    td:nth-child(5), th:nth-child(5) {
+      width: 130px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      min-width: 105px;
+      touch-action: manipulation;
+    }
+
+    .start {
+      background: #007aff;
+    }
+
+    .stop {
+      background: #ff3b30;
+    }
+
+    .done {
+      background: #34c759;
+    }
+
+    .disabledCell {
+      background: #d6d6d6;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      padding: 16px;
+      background: #fafafa;
+    }
+
+    .smallButton {
+      background: #555;
+      font-size: 18px;
+      min-width: 130px;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 8px;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+
+      table {
+        font-size: 17px;
+      }
+
+      th, td {
+        padding: 8px 4px;
+      }
+
+      button {
+        font-size: 16px;
+        min-width: 68px;
+        padding: 8px 5px;
+        border-radius: 8px;
+      }
+
+      td:first-child, th:first-child {
+        width: 38px;
+      }
+
+      td:nth-child(2), th:nth-child(2),
+      td:nth-child(4), th:nth-child(4) {
+        width: 78px;
+      }
+
+      td:nth-child(3), th:nth-child(3),
+      td:nth-child(5), th:nth-child(5) {
+        width: 74px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <h1>10人タイマー</h1>
 
-<h2>タイマー</h2>
-<button onclick="resetAll()">オールリセット</button>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>番号</th>
+          <th>時間(分,秒)</th>
+          <th>操作</th>
+          <th>助言</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="timerBody"></tbody>
+    </table>
 
-<table>
+    <div class="controls">
+      <button class="smallButton" onclick="resetAll()">全リセット</button>
+      <button class="smallButton" onclick="copyRecords()">記録をコピー</button>
+    </div>
+  </div>
 
-<tr>
-    <th>番号</th>
-    <th>経過時間</th>
-    <th>操作</th>
-</tr>
+  <script>
+    const COUNT = 10;
+    const timers = [];
+    const tbody = document.getElementById("timerBody");
 
-<tbody id="tableBody"></tbody>
-
-</table>
-
-<script>
-
-const tableBody = document.getElementById("tableBody");
-
-const timers = {};
-
-const rows = [
-"1","2",
-"3","3a",
-"4","4a",
-"5","5a",
-"6","6a",
-"7","7a",
-"8","8a",
-"9","10","11","12"
-];
-
-rows.forEach(name => createRow(name));
-
-function createRow(name){
-
-    const tr = document.createElement("tr");
-
-    tr.dataset.name = name;
-
-    if(name.includes("a")){
-        tr.style.backgroundColor = "#f0f8ff";
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
     }
 
-    tr.innerHTML = `
-        <td>${name}</td>
-
-        <td class="elapsed">
-            00:00:00
-        </td>
-
-        <td>
-            <button onclick="startTimer('${name}')">
-                Start
-            </button>
-
-            <button onclick="endTimer('${name}')">
-                End
-            </button>
-        </td>
-    `;
-
-    tableBody.appendChild(tr);
-}
-
-function formatTime(ms){
-
-    const totalSeconds = Math.floor(ms / 1000);
-
-    const hours =
-        String(Math.floor(totalSeconds / 3600))
-        .padStart(2,"0");
-
-    const minutes =
-        String(Math.floor((totalSeconds % 3600) / 60))
-        .padStart(2,"0");
-
-    const seconds =
-        String(totalSeconds % 60)
-        .padStart(2,"0");
-
-    return `${hours}:${minutes}:${seconds}`;
-}
-
-function startTimer(name){
-
-    const row =
-        document.querySelector(
-            `tr[data-name="${name}"]`
-        );
-
-    if(timers[name]){
-        clearInterval(timers[name].interval);
+    function canUseAdvice(index) {
+      // 3〜7番だけ助言タイマーを使う
+      return index >= 2 && index <= 6;
     }
 
-    const startTime = Date.now();
-
-    timers[name] = {
-
-        startTime:startTime,
-
-        interval:setInterval(()=>{
-
-            const elapsed =
-                Date.now() - startTime;
-
-            row.querySelector(".elapsed")
-               .textContent =
-                formatTime(elapsed);
-
-        },1000)
-    };
-}
-
-function endTimer(name){
-
-    if(!timers[name]) return;
-
-    clearInterval(timers[name].interval);
-
-    delete timers[name];
-}
-
-function resetAll(){
-
-    if(!confirm("すべての記録を消しますか？")){
-        return;
+    function saveData() {
+      const data = timers.map(t => ({
+        mainTime: t.mainTime,
+        adviceTime: t.adviceTime
+      }));
+      localStorage.setItem("multiTimerRecords", JSON.stringify(data));
     }
 
-    for(const name in timers){
-        clearInterval(timers[name].interval);
-        delete timers[name];
+    function loadData() {
+      const saved = localStorage.getItem("multiTimerRecords");
+      const records = saved ? JSON.parse(saved) : [];
+
+      for (let i = 0; i < COUNT; i++) {
+        timers.push({
+          number: i + 1,
+
+          mainStart: null,
+          mainInterval: null,
+          mainTime: records[i]?.mainTime || "-",
+          mainRunning: false,
+
+          adviceStart: null,
+          adviceInterval: null,
+          adviceTime: records[i]?.adviceTime || "-",
+          adviceRunning: false
+        });
+      }
     }
 
-    document.querySelectorAll(".elapsed").forEach(cell => {
-        cell.textContent = "00:00:00";
-    });
-}
+    function makeButton(text, className, onClick) {
+      const button = document.createElement("button");
+      button.textContent = text;
+      button.className = className;
+      button.onclick = onClick;
+      return button;
+    }
 
-</script>
+    function render() {
+      tbody.innerHTML = "";
 
+      timers.forEach((timer, index) => {
+        const tr = document.createElement("tr");
+
+        const numberTd = document.createElement("td");
+        numberTd.textContent = timer.number;
+
+        const mainTimeTd = document.createElement("td");
+        mainTimeTd.id = `main-time-${index}`;
+        mainTimeTd.textContent = timer.mainTime;
+
+        const mainButtonTd = document.createElement("td");
+        const mainButtonText = timer.mainTime !== "-" ? "記録済み" : "start";
+        const mainButtonClass = timer.mainTime !== "-" ? "done" : "start";
+        const mainButton = makeButton(mainButtonText, mainButtonClass, () => toggleMainTimer(index));
+        mainButton.id = `main-button-${index}`;
+        mainButtonTd.appendChild(mainButton);
+
+        const adviceTimeTd = document.createElement("td");
+        adviceTimeTd.id = `advice-time-${index}`;
+
+        const adviceButtonTd = document.createElement("td");
+
+        if (canUseAdvice(index)) {
+          adviceTimeTd.textContent = timer.adviceTime;
+          const adviceButtonText = timer.adviceTime !== "-" ? "記録済み" : "start";
+          const adviceButtonClass = timer.adviceTime !== "-" ? "done" : "start";
+          const adviceButton = makeButton(adviceButtonText, adviceButtonClass, () => toggleAdviceTimer(index));
+          adviceButton.id = `advice-button-${index}`;
+          adviceButtonTd.appendChild(adviceButton);
+        } else {
+          adviceTimeTd.textContent = "";
+          adviceTimeTd.className = "disabledCell";
+          adviceButtonTd.className = "disabledCell";
+        }
+
+        tr.appendChild(numberTd);
+        tr.appendChild(mainTimeTd);
+        tr.appendChild(mainButtonTd);
+        tr.appendChild(adviceTimeTd);
+        tr.appendChild(adviceButtonTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleMainTimer(index) {
+      const timer = timers[index];
+      const timeCell = document.getElementById(`main-time-${index}`);
+      const button = document.getElementById(`main-button-${index}`);
+
+      if (!timer.mainRunning) {
+        timer.mainStart = Date.now();
+        timer.mainRunning = true;
+        timer.mainTime = "-";
+
+        button.textContent = "stop";
+        button.className = "stop";
+        timeCell.textContent = "0:00";
+
+        timer.mainInterval = setInterval(() => {
+          timeCell.textContent = formatTime(Date.now() - timer.mainStart);
+        }, 200);
+      } else {
+        clearInterval(timer.mainInterval);
+        const elapsed = Date.now() - timer.mainStart;
+        timer.mainTime = formatTime(elapsed);
+        timer.mainRunning = false;
+        timer.mainStart = null;
+        timer.mainInterval = null;
+
+        timeCell.textContent = timer.mainTime;
+        button.textContent = "記録済み";
+        button.className = "done";
+
+        saveData();
+      }
+    }
+
+    function toggleAdviceTimer(index) {
+      if (!canUseAdvice(index)) return;
+
+      const timer = timers[index];
+      const timeCell = document.getElementById(`advice-time-${index}`);
+      const button = document.getElementById(`advice-button-${index}`);
+
+      if (!timer.adviceRunning) {
+        timer.adviceStart = Date.now();
+        timer.adviceRunning = true;
+        timer.adviceTime = "-";
+
+        button.textContent = "stop";
+        button.className = "stop";
+        timeCell.textContent = "0:00";
+
+        timer.adviceInterval = setInterval(() => {
+          timeCell.textContent = formatTime(Date.now() - timer.adviceStart);
+        }, 200);
+      } else {
+        clearInterval(timer.adviceInterval);
+        const elapsed = Date.now() - timer.adviceStart;
+        timer.adviceTime = formatTime(elapsed);
+        timer.adviceRunning = false;
+        timer.adviceStart = null;
+        timer.adviceInterval = null;
+
+        timeCell.textContent = timer.adviceTime;
+        button.textContent = "記録済み";
+        button.className = "done";
+
+        saveData();
+      }
+    }
+
+    function resetAll() {
+      timers.forEach(timer => {
+        if (timer.mainInterval) clearInterval(timer.mainInterval);
+        if (timer.adviceInterval) clearInterval(timer.adviceInterval);
+
+        timer.mainStart = null;
+        timer.mainInterval = null;
+        timer.mainTime = "-";
+        timer.mainRunning = false;
+
+        timer.adviceStart = null;
+        timer.adviceInterval = null;
+        timer.adviceTime = "-";
+        timer.adviceRunning = false;
+      });
+
+      saveData();
+      render();
+    }
+
+    function copyRecords() {
+      const text = timers
+        .map(t => `${t.number}\t${t.mainTime}\t${t.adviceTime}`)
+        .join("\n");
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert("記録をコピーしました");
+      }).catch(() => {
+        alert(text);
+      });
+    }
+
+    loadData();
+    render();
+  </script>
 </body>
 </html>
