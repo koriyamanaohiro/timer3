@@ -29,13 +29,13 @@ h1 {
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 
-.topControls {
+.topControls, .bottomTabs, .resultControls {
   display: flex;
   gap: 10px;
   justify-content: center;
   padding: 12px;
   background: #fafafa;
-  border-bottom: 1px solid #ccc;
+  flex-wrap: wrap;
 }
 
 table {
@@ -61,16 +61,6 @@ td:first-child, th:first-child {
   text-align: center;
 }
 
-td:nth-child(2), th:nth-child(2),
-td:nth-child(4), th:nth-child(4) {
-  width: 135px;
-}
-
-td:nth-child(3), th:nth-child(3),
-td:nth-child(5), th:nth-child(5) {
-  width: 130px;
-}
-
 button {
   font-size: 20px;
   padding: 10px 16px;
@@ -81,17 +71,15 @@ button {
   touch-action: manipulation;
 }
 
-.start {
-  background: #007aff;
-}
-
-.stop {
-  background: #ff3b30;
-}
-
-.done {
-  background: #34c759;
-}
+.start { background: #007aff; }
+.stop { background: #ff3b30; }
+.done { background: #34c759; }
+.smallButton { background: #555; font-size: 18px; min-width: 130px; }
+.pdfButton { background: #007aff; }
+.backButton { background: #555; }
+.copyButton { background: #34c759; }
+.activeTab { background: #007aff; }
+.inactiveTab { background: #999; }
 
 .disabledButton {
   opacity: 0.75;
@@ -99,28 +87,6 @@ button {
 
 .disabledCell {
   background: #d6d6d6;
-}
-
-.smallButton {
-  background: #555;
-  font-size: 18px;
-  min-width: 130px;
-}
-
-.pdfButton {
-  background: #007aff;
-}
-
-.backButton {
-  background: #555;
-}
-
-.copyButton {
-  background: #34c759;
-}
-
-#printButton {
-  background: #007aff;
 }
 
 #resultScreen {
@@ -135,12 +101,13 @@ button {
   border-radius: 14px;
 }
 
-.resultControls {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+.nameInput {
+  width: 95%;
+  font-size: 20px;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #aaa;
+  border-radius: 6px;
 }
 
 #copyText {
@@ -154,44 +121,19 @@ button {
 }
 
 @media print {
-  body {
-    background: white;
-  }
-
-  .resultControls {
-    display: none;
-  }
-
-  #timerScreen {
-    display: none;
-  }
-
-  #resultScreen {
-    display: block;
-  }
-
-  .resultBox {
-    box-shadow: none;
-    border-radius: 0;
-  }
+  body { background: white; }
+  .resultControls { display: none; }
+  #timerScreen { display: none; }
+  #resultScreen { display: block; }
+  .resultBox { box-shadow: none; border-radius: 0; }
+  input { border: none; }
 }
 
 @media (max-width: 760px) {
-  body {
-    padding: 8px;
-  }
-
-  h1 {
-    font-size: 23px;
-  }
-
-  table {
-    font-size: 17px;
-  }
-
-  th, td {
-    padding: 8px 4px;
-  }
+  body { padding: 8px; }
+  h1 { font-size: 23px; }
+  table { font-size: 17px; }
+  th, td { padding: 8px 4px; }
 
   button {
     font-size: 16px;
@@ -205,18 +147,9 @@ button {
     min-width: 110px;
   }
 
-  td:first-child, th:first-child {
-    width: 38px;
-  }
-
-  td:nth-child(2), th:nth-child(2),
-  td:nth-child(4), th:nth-child(4) {
-    width: 78px;
-  }
-
-  td:nth-child(3), th:nth-child(3),
-  td:nth-child(5), th:nth-child(5) {
-    width: 74px;
+  .nameInput {
+    font-size: 17px;
+    padding: 6px;
   }
 }
 </style>
@@ -225,7 +158,7 @@ button {
 <body>
 
 <div id="timerScreen">
-  <h1>10人タイマー</h1>
+  <h1>タイマー</h1>
 
   <div class="wrap">
 
@@ -247,6 +180,11 @@ button {
       <tbody id="timerBody"></tbody>
     </table>
 
+    <div class="bottomTabs">
+      <button id="tab6" class="activeTab" onclick="setAdviceLimit(6)">助言6番まで</button>
+      <button id="tab7" class="inactiveTab" onclick="setAdviceLimit(7)">助言7番まで</button>
+    </div>
+
   </div>
 </div>
 
@@ -255,7 +193,7 @@ button {
 
     <div class="resultControls">
       <button class="backButton" onclick="backToTimer()">戻る</button>
-      <button id="printButton" onclick="window.print()">PDFにする</button>
+      <button class="pdfButton" onclick="window.print()">PDFにする</button>
       <button class="copyButton" onclick="copyPdfText()">表示内容をコピー</button>
     </div>
 
@@ -271,6 +209,8 @@ const COUNT = 10;
 const timers = [];
 const tbody = document.getElementById("timerBody");
 
+let adviceLimit = 6;
+
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
@@ -279,20 +219,28 @@ function formatTime(ms) {
 }
 
 function canUseAdvice(index) {
-  return index >= 2 && index <= 6;
+  const number = index + 1;
+  return number >= 3 && number <= adviceLimit;
 }
 
 function saveData() {
-  const data = timers.map(t => ({
-    mainTime: t.mainTime,
-    adviceTime: t.adviceTime
-  }));
+  const data = {
+    adviceLimit: adviceLimit,
+    records: timers.map(t => ({
+      mainTime: t.mainTime,
+      adviceTime: t.adviceTime,
+      studentName: t.studentName || ""
+    }))
+  };
   localStorage.setItem("multiTimerRecords", JSON.stringify(data));
 }
 
 function loadData() {
   const saved = localStorage.getItem("multiTimerRecords");
-  const records = saved ? JSON.parse(saved) : [];
+  const parsed = saved ? JSON.parse(saved) : {};
+  const records = parsed.records || [];
+
+  adviceLimit = parsed.adviceLimit || 6;
 
   for (let i = 0; i < COUNT; i++) {
     timers.push({
@@ -306,7 +254,9 @@ function loadData() {
       adviceStart: null,
       adviceInterval: null,
       adviceTime: records[i]?.adviceTime || "-",
-      adviceRunning: false
+      adviceRunning: false,
+
+      studentName: records[i]?.studentName || ""
     });
   }
 }
@@ -317,6 +267,21 @@ function makeButton(text, className, onClick) {
   button.className = className;
   button.onclick = onClick;
   return button;
+}
+
+function renderTabs() {
+  document.getElementById("tab6").className =
+    adviceLimit === 6 ? "activeTab" : "inactiveTab";
+
+  document.getElementById("tab7").className =
+    adviceLimit === 7 ? "activeTab" : "inactiveTab";
+}
+
+function setAdviceLimit(limit) {
+  adviceLimit = limit;
+  saveData();
+  render();
+  renderTabs();
 }
 
 function render() {
@@ -395,14 +360,14 @@ function render() {
 
     tbody.appendChild(tr);
   });
+
+  renderTabs();
 }
 
 function toggleMainTimer(index) {
   const timer = timers[index];
 
-  if (timer.mainTime !== "-" && !timer.mainRunning) {
-    return;
-  }
+  if (timer.mainTime !== "-" && !timer.mainRunning) return;
 
   const timeCell = document.getElementById(`main-time-${index}`);
   const button = document.getElementById(`main-button-${index}`);
@@ -423,9 +388,7 @@ function toggleMainTimer(index) {
   } else {
     clearInterval(timer.mainInterval);
 
-    const elapsed = Date.now() - timer.mainStart;
-
-    timer.mainTime = formatTime(elapsed);
+    timer.mainTime = formatTime(Date.now() - timer.mainStart);
     timer.mainRunning = false;
     timer.mainStart = null;
     timer.mainInterval = null;
@@ -444,9 +407,7 @@ function toggleAdviceTimer(index) {
 
   const timer = timers[index];
 
-  if (timer.adviceTime !== "-" && !timer.adviceRunning) {
-    return;
-  }
+  if (timer.adviceTime !== "-" && !timer.adviceRunning) return;
 
   const timeCell = document.getElementById(`advice-time-${index}`);
   const button = document.getElementById(`advice-button-${index}`);
@@ -467,9 +428,7 @@ function toggleAdviceTimer(index) {
   } else {
     clearInterval(timer.adviceInterval);
 
-    const elapsed = Date.now() - timer.adviceStart;
-
-    timer.adviceTime = formatTime(elapsed);
+    timer.adviceTime = formatTime(Date.now() - timer.adviceStart);
     timer.adviceRunning = false;
     timer.adviceStart = null;
     timer.adviceInterval = null;
@@ -484,9 +443,7 @@ function toggleAdviceTimer(index) {
 }
 
 function resetAll() {
-  if (!confirm("すべての記録を消しますか？")) {
-    return;
-  }
+  if (!confirm("すべての記録を消しますか？")) return;
 
   timers.forEach(timer => {
     if (timer.mainInterval) clearInterval(timer.mainInterval);
@@ -501,6 +458,8 @@ function resetAll() {
     timer.adviceInterval = null;
     timer.adviceTime = "-";
     timer.adviceRunning = false;
+
+    timer.studentName = "";
   });
 
   saveData();
@@ -508,15 +467,12 @@ function resetAll() {
 }
 
 function makeResultText() {
-  const now = new Date();
-
   let text = "";
-  text += "計測結果\n";
-  text += `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日\n\n`;
-  text += "番号\t時間\t助言\n";
+  text += "計測結果\n\n";
+  text += "番号\t名前\t時間\t助言\n";
 
   timers.forEach(t => {
-    text += `${t.number}\t${t.mainTime}\t${canUseAdvice(t.number - 1) ? t.adviceTime : ""}\n`;
+    text += `${t.number}\t${t.studentName || ""}\t${t.mainTime}\t${canUseAdvice(t.number - 1) ? t.adviceTime : ""}\n`;
   });
 
   return text;
@@ -526,18 +482,16 @@ function showPdfScreen() {
   const resultArea = document.getElementById("resultArea");
   const copyText = document.getElementById("copyText");
 
-  const now = new Date();
-
   let html = "";
-  html += `<p>${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日</p>`;
   html += `<table>`;
-  html += `<tr><th>番号</th><th>時間</th><th>助言</th></tr>`;
+  html += `<tr><th>番号</th><th>名前</th><th>時間</th><th>助言</th></tr>`;
 
-  timers.forEach(t => {
+  timers.forEach((t, index) => {
     html += `<tr>`;
     html += `<td>${t.number}</td>`;
+    html += `<td><input class="nameInput" value="${t.studentName || ""}" oninput="updateName(${index}, this.value)"></td>`;
     html += `<td>${t.mainTime}</td>`;
-    html += `<td>${canUseAdvice(t.number - 1) ? t.adviceTime : ""}</td>`;
+    html += `<td>${canUseAdvice(index) ? t.adviceTime : ""}</td>`;
     html += `</tr>`;
   });
 
@@ -548,6 +502,12 @@ function showPdfScreen() {
 
   document.getElementById("timerScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "block";
+}
+
+function updateName(index, value) {
+  timers[index].studentName = value;
+  saveData();
+  document.getElementById("copyText").textContent = makeResultText();
 }
 
 function backToTimer() {
