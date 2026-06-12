@@ -482,15 +482,37 @@ function showPdfScreen() {
   const copyText = document.getElementById("copyText");
 
   let html = "";
-  html += `<table>`;
-  html += `<tr><th>番号</th><th>名前</th><th>時間</th><th>助言</th></tr>`;
+
+  html += `<table style="width:100%; border-collapse:collapse;">`;
+
+  html += `
+    <tr>
+      <th style="width:50px; text-align:center;">番号</th>
+      <th style="width:140px; text-align:center;">名前</th>
+      <th style="width:80px; text-align:center;">時間</th>
+      <th style="width:80px; text-align:center;">助言</th>
+    </tr>
+  `;
 
   timers.forEach((t, index) => {
     html += `<tr>`;
-    html += `<td>${t.number}</td>`;
-    html += `<td><input class="nameInput" value="${t.studentName || ""}" oninput="updateName(${index}, this.value)"></td>`;
-    html += `<td>${t.mainTime}</td>`;
-    html += `<td>${canUseAdvice(index) ? t.adviceTime : ""}</td>`;
+
+    html += `<td style="text-align:center;">${t.number}</td>`;
+
+    html += `
+      <td style="text-align:center;">
+        <input
+          class="nameInput"
+          value="${t.studentName || ""}"
+          oninput="updateName(${index}, this.value)"
+        >
+      </td>
+    `;
+
+    html += `<td style="text-align:center;">${t.mainTime}</td>`;
+
+    html += `<td style="text-align:center;">${canUseAdvice(index) ? t.adviceTime : ""}</td>`;
+
     html += `</tr>`;
   });
 
