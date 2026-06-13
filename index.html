@@ -115,13 +115,7 @@ button {
 }
 
 #copyText {
-  white-space: pre-wrap;
-  font-size: 20px;
-  line-height: 1.6;
-  border: 1px solid #ccc;
-  padding: 12px;
-  margin-top: 14px;
-  background: #fafafa;
+  display: none;
 }
 
 @media print {
@@ -525,7 +519,7 @@ ${canUseAdvice(index) ? t.adviceTime : ""}
   html += `</div>`;
 
   resultArea.innerHTML = html;
-  copyText.textContent = makeResultText();
+  copyText.textContent = "";
 
   document.getElementById("timerScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "block";
