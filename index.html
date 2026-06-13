@@ -94,11 +94,15 @@ button {
 }
 
 .resultBox {
-  max-width: 900px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   background: white;
-  padding: 18px;
+  padding: 12px;
   border-radius: 14px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
 }
 
 .nameInput {
@@ -487,9 +491,9 @@ function showPdfScreen() {
   html += `
 <div style="
 display:grid;
-grid-template-columns:50px 170px 80px 80px;
+grid-template-columns:45px 170px 75px 75px;
 row-gap:12px;
-column-gap:10px;
+column-gap:4px;
 align-items:center;
 font-size:22px;
 ">
