@@ -102,7 +102,7 @@ button {
 }
 
 .nameInput {
-  width: 95px;
+  width: 160px;
   font-size: 20px;
   padding: 8px;
   box-sizing: border-box;
@@ -148,9 +148,10 @@ button {
   }
 
   .nameInput {
-    font-size: 17px;
-    padding: 6px;
-  }
+  width: 150px;
+  font-size: 17px;
+  padding: 6px;
+}
 }
 </style>
 </head>
@@ -483,40 +484,41 @@ function showPdfScreen() {
 
   let html = "";
 
-  html += `<table style="width:100%; border-collapse:collapse;">`;
-
   html += `
-    <tr>
-      <th style="width:50px; text-align:center;">番号</th>
-      <th style="width:140px; text-align:center;">名前</th>
-      <th style="width:80px; text-align:center;">時間</th>
-      <th style="width:80px; text-align:center;">助言</th>
-    </tr>
-  `;
+<div style="
+display:grid;
+grid-template-columns:60px 200px 140px 140px;
+row-gap:12px;
+column-gap:10px;
+align-items:center;
+font-size:22px;
+">
+<div style="font-weight:bold;text-align:center;">番号</div>
+<div style="font-weight:bold;text-align:center;">名前</div>
+<div style="font-weight:bold;text-align:center;">時間</div>
+<div style="font-weight:bold;text-align:center;">助言</div>
+`;
 
   timers.forEach((t, index) => {
-    html += `<tr>`;
-
-    html += `<td style="text-align:center;">${t.number}</td>`;
-
     html += `
-      <td style="text-align:center;">
-        <input
-          class="nameInput"
-          value="${t.studentName || ""}"
-          oninput="updateName(${index}, this.value)"
-        >
-      </td>
-    `;
-
-    html += `<td style="text-align:center;">${t.mainTime}</td>`;
-
-    html += `<td style="text-align:center;">${canUseAdvice(index) ? t.adviceTime : ""}</td>`;
-
-    html += `</tr>`;
+<div style="text-align:center;">${t.number}</div>
+<div style="text-align:center;">
+<input
+class="nameInput"
+value="${t.studentName || ""}"
+oninput="updateName(${index}, this.value)"
+>
+</div>
+<div style="text-align:center;font-variant-numeric:tabular-nums;">
+${t.mainTime}
+</div>
+<div style="text-align:center;font-variant-numeric:tabular-nums;">
+${canUseAdvice(index) ? t.adviceTime : ""}
+</div>
+`;
   });
 
-  html += `</table>`;
+  html += `</div>`;
 
   resultArea.innerHTML = html;
   copyText.textContent = makeResultText();
