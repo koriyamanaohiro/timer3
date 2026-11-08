@@ -60,8 +60,16 @@ rr(11,92,17,H-112,4,'#b77e56');rr(W-28,92,17,H-112,4,'#b77e56');g.fillStyle='#f8
 rr(0,H-112,W,112,0,'#bd8d65');rr(0,H-114,W,14,3,'#e1b17c');for(let x=0;x<W;x+=100)line(x,H-95,x+70,H-95,'#af7f59',2);text('ぽんっ、と。',92,H-22,12,'#f9e1b9');drawCorks();
 for(const p of particles){g.globalAlpha=Math.max(0,p.life);rr(p.x,p.y,6,9,2,p.color)}g.globalAlpha=1;
 const pose=gunPose(),gx=pose.x,gy=pose.y,L=pose.length;g.save();g.translate(gx,gy);g.rotate(pose.angle);g.translate(0,cooldown>0?Math.sin(cooldown/.38*Math.PI)*7:0);
-// Perspective barrel: raising the aim visibly raises and lengthens the barrel.
-rr(-7,-L,14,L-15,6,'#9baea5','#53695e');rr(-4,-L+6,4,L-43,2,'#d7dfcb');line(4,-L+13,4,-40,'#71877b',2);ellipse(0,-L,8,4,'#526a60');ellipse(0,-L,4,2,'#30483e');rr(-2,-L-6,4,9,2,'#d9c394','#5a624b');rr(-20,-36,40,60,10,'#a96b48','#704b37');rr(-12,-31,24,46,6,'#d39a66');rr(17,-21,15,24,8,'#6b5140');line(-8,7,8,7,'#b67e50',2);g.restore();
+// Rifle seen from roughly 35 degrees above: only the gun is visible.
+g.fillStyle='#3f4f4930';g.beginPath();g.moveTo(-5,-L+5);g.lineTo(9,-L+5);g.lineTo(16,-38);g.lineTo(25,28);g.lineTo(-18,31);g.lineTo(-9,-38);g.closePath();g.fill();
+g.fillStyle='#526a60';g.beginPath();g.moveTo(-6,-L);g.lineTo(6,-L);g.lineTo(11,-39);g.lineTo(-11,-39);g.closePath();g.fill();g.strokeStyle='#344b42';g.lineWidth=2;g.stroke();
+g.fillStyle='#81968b';g.beginPath();g.moveTo(-4,-L+3);g.lineTo(1,-L+3);g.lineTo(3,-42);g.lineTo(-7,-42);g.closePath();g.fill();
+g.fillStyle='#40564d';g.beginPath();g.moveTo(6,-L);g.lineTo(9,-L+4);g.lineTo(14,-36);g.lineTo(11,-39);g.closePath();g.fill();
+ellipse(0,-L,7,3.5,'#344b42');ellipse(0,-L,3.5,1.8,'#172b24');rr(-2,-L-7,4,8,2,'#d9c394','#5a624b');
+rr(-16,-52,32,45,7,'#788d83','#3f554c');rr(-11,-49,17,38,5,'#aebbb0');line(10,-47,10,-12,'#42594f',3);rr(-7,-31,14,9,3,'#394c44');
+g.fillStyle='#9e6242';g.beginPath();g.moveTo(-15,-12);g.lineTo(15,-12);g.lineTo(22,23);g.quadraticCurveTo(16,34,0,36);g.quadraticCurveTo(-16,34,-22,23);g.closePath();g.fill();g.strokeStyle='#603e2f';g.lineWidth=2.5;g.stroke();
+g.fillStyle='#c18458';g.beginPath();g.moveTo(-10,-9);g.lineTo(7,-9);g.lineTo(13,22);g.quadraticCurveTo(7,28,-7,29);g.lineTo(-14,21);g.closePath();g.fill();line(-14,16,14,16,'#754832',2);
+g.fillStyle='#5c4639';g.beginPath();g.moveTo(15,-18);g.lineTo(25,-11);g.lineTo(23,12);g.lineTo(12,8);g.closePath();g.fill();g.strokeStyle='#3e3029';g.stroke();rr(12,-16,7,18,3,'#735447');g.restore();
 for(const s of shots){const t=Math.min(1,s.t/.20);ellipse(s.sx+(s.x-s.sx)*t,s.sy+(s.y-s.sy)*t,7-3*t,9-5*t,'#cda06c')}
 }
 function frame(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;if(state==='playing'){elapsed+=dt;offset+=dt*30*+$('speed').value;cooldown=Math.max(0,cooldown-dt);if(mode==='time')remaining=Math.max(0,remaining-dt);for(const s of shots){s.t+=dt;if(s.t>=.20&&!s.done){s.done=true;hit(s)}}shots=shots.filter(s=>s.t<.27);for(const p of prizes){p.wobble=Math.max(0,p.wobble-dt);p.spin=Math.max(0,p.spin-dt);if(p.fallen)p.fall+=dt*1.6}for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=350*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);musicClock-=dt;if(musicClock<=0){musicClock=.22;if(!muted){tone(440*2**((melody[noteIndex%32]-69)/12),.17,'sine',.18);if(noteIndex%4===0)tone([130.81,174.61,196,130.81][Math.floor(noteIndex/8)%4],.35,'triangle',.17)}noteIndex++}hud();if((mode==='ammo'&&ammo===0&&shots.length===0&&cooldown===0)||(mode==='time'&&remaining===0&&shots.length===0)||prizes.every(p=>p.fallen)){if(!prizes.some(p=>p.fallen&&p.fall<1))finish()}}draw();requestAnimationFrame(frame)}
